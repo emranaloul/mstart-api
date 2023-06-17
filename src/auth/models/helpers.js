@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { getUserByEmailOrName, getUser } = require('./users');
+const { getUserByEmailOrName, getUser, updateLastLogin } = require('./users');
 
 
 async function authenticateBasic(email, password) {
@@ -20,12 +20,13 @@ async function authenticateBasic(email, password) {
     }
 }
 
-let getToken = (userId) => {
+let getToken = async (userId) => {
     try {
-        const expireDate = 900;
+        const expireDate = 3600;
         let payload = {
             userId: userId,
         };
+        await updateLastLogin(userId)
         return jwt.sign(payload, process.env.SECRET, { expiresIn: expireDate });
     } catch (error) {
         throw new Error(error.message);
@@ -43,8 +44,23 @@ let authenticateWithToken = async (token) => {
     }
 }
 
+const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error('Invalid email address');
+    }
+  }
+  const validateMobileNumber = (number) => {
+    const mobileRegex = /^07[7-9]\d{7}$/;
+    if (!mobileRegex.test(number)) {
+      throw new Error('Invalid mobile number');
+    }
+  }
+
 module.exports = {
     authenticateBasic,
     getToken,
-    authenticateWithToken
+    authenticateWithToken,
+    validateMobileNumber,
+    validateEmail
 }

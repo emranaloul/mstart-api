@@ -12,7 +12,8 @@ const {
     getUserHandler,
     getUsersHandler,
     getMyProfile,
-    updateImageHandler
+    updateImageHandler,
+    logoutHandler
 } = require('./auth/controllers/users');
 const { uploadS3 } = require('./uploader');
 const { checkAdmin, checkActive } = require('./auth/middleware/acl');
@@ -33,6 +34,7 @@ app.delete('/user/:id', bearer, upload.none(), deleteUserHandler)
 app.get('/user/:id', bearer, upload.none(), getUserHandler)
 app.get('/user', bearer, checkAdmin , getUsersHandler)
 app.get('/me', bearer, getMyProfile)
+app.post('/logout', bearer, logoutHandler)
 
 
 module.exports = {

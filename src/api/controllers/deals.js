@@ -3,55 +3,62 @@ const {
     deleteDeal,
     getDeal,
     getDeals,
-    updateDeal
-} = require('../modles/deals')
+    updateDeal,
+    updateDealStatus
+} = require('../models/deals')
 
 
-const addDealHandler =  async (req,res) =>{
+const addDealHandler = async (req, res) => {
     try {
-        const data  =  await addDeal(req.body)
-        res.send({status: 200, data, message: 'created successfully'})
+        const data = await addDeal(req.body)
+        res.send({ status: 200, data, message: 'created successfully' })
     } catch (error) {
-        res.send({status: 400, message: error.message})
+        res.send({ status: 400, message: error.message })
     }
 }
 
-const deleteDealHandler =  async (req,res) =>{
+const deleteDealHandler = async (req, res) => {
     try {
-        const {id} = req.params
-        const data = await deleteDeal(id)
-        res.send({status: 200, data, message: 'deleted successfully'})
+        const { id } = req.params
+        try {
+            const data = await deleteDeal(id)
+            res.send({ status: 200, data, message: 'deleted successfully' })
+
+        } catch (error) {
+            const data = updateDealStatus(id, 'deleted')
+            res.send({ status: 200, data, message: 'deleted successfully' })
+        }
     } catch (error) {
-        res.send({status: 400, message: error.message})
-        
+        res.send({ status: 400, message: error.message })
+
     }
 }
 
-const updateDealHandler = async (req,res) =>{
+const updateDealHandler = async (req, res) => {
     try {
         const data = await updateDeal(req.body)
-        res.send({status: 200, data, message: 'updated successfully'})
+        res.send({ status: 200, data, message: 'updated successfully' })
     } catch (error) {
-        res.send({status: 400, message: error.message})
+        res.send({ status: 400, message: error.message })
     }
 }
 
-const getDealHandler = async (req,res) =>{
+const getDealHandler = async (req, res) => {
     try {
-        const {id} = req.params
+        const { id } = req.params
         const data = await getDeal(id)
-        res.send({status: 200, data, message: 'get successfully'})
+        res.send({ status: 200, data, message: 'get successfully' })
     } catch (error) {
-        res.send({status: 400, message: error.message})
+        res.send({ status: 400, message: error.message })
     }
 }
 
-const getDealsHandler = async (req,res) =>{
+const getDealsHandler = async (req, res) => {
     try {
-        const data = await getDeals(req.query)
-        res.send({status: 200, data, message: 'get successfully'})
+        const data = await getDeals(req.query, req.user.role)
+        res.send({ status: 200, data, message: 'get successfully' })
     } catch (error) {
-        res.send({status: 400, message: error.message})
+        res.send({ status: 400, message: error.message })
     }
 }
 
