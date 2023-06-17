@@ -6,7 +6,7 @@ const {getToken} = require('./helpers');
 
 const createToken = async user_id =>{
     try {
-        const accessToken = getToken(user_id);
+        const accessToken = await getToken(user_id);
         let SQL = `INSERT INTO JWT (access_token, user_id,datetime_utc) VALUES ($1,$2,$3) RETURNING *;`;
         let safeValues = [accessToken, user_id,new Date(new Date().toUTCString())];
         let {rows} = await client.query(SQL, safeValues);

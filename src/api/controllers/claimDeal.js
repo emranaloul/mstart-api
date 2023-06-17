@@ -4,7 +4,7 @@ const {
     getClaim,
     getClaims,
     getClaimAmountsAndCount
-} = require('../modles/claimDeal')
+} = require('../models/claimDeal')
 
 const createClaimHandler = async (req,res) =>{
     try {

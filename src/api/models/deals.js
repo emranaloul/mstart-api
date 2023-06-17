@@ -41,14 +41,15 @@ const getDeal = async id => {
         return rows[0]
     } catch (error) {
         throw new Error(error.message)
-
     }
 }
 
-const updateClaimedDeal = async id => {
+
+
+const updateDealStatus = async (id, status) => {
     try {
         const sql = `update deals set status=$2 where id= $1 returning *`
-        const value = [id, 'claimed']
+        const value = [id, status]
         const { rows } = await client.query(sql, value);
         return rows[0]
     } catch (error) {
@@ -57,14 +58,16 @@ const updateClaimedDeal = async id => {
 }
 
 
-const getDeals = async ({ limit, offset }) => {
+const getDeals = async ({ limit, offset }, role) => {
     try {
-        const sql = `select * from deals order by Server_DateTime desc limit $1 offset $2 `
-        const _sql = 'select count(*) from deals'
-        const values = [limit ?? 10, offset ?? 0]
-        const { rows } = await client.query(_sql)
-        const { count } = rows[0]
+        const sql = `select * from deals ${role !== 'admin' ? 'where status not in ($3, $4, $5)' : ''} order by Server_DateTime desc limit $1 offset $2 `
+        const _sql = `select count(*) from deals ${role !== 'admin' ? 'where status not in ($1, $2, $3)' : ''}`
+        const _values = ['deleted', 'expired', 'inactive']
+        let values = [limit ?? 10, offset ?? 0]
+        values = role !== 'admin' ? values.concat(_values) : values
         const { rows: rows2 } = await client.query(sql, values)
+        const { rows } = await client.query(_sql, role !== 'admin' ? _values : [])
+        const { count } = rows[0]
         return { data: rows2, count: Number(count) ?? 0 }
 
     } catch (error) {
@@ -79,5 +82,5 @@ module.exports = {
     getDeal,
     getDeals,
     updateDeal,
-    updateClaimedDeal
+    updateDealStatus
 }

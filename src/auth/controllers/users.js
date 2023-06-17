@@ -6,7 +6,8 @@ const {
     getUsers,
     getUser,
     getUserByEmailOrName,
-    updateImage
+    updateImage,
+    logout
 } = require('../models/users')
 
 const addUserHandler = async (req, res) => {
@@ -77,6 +78,15 @@ const updateImageHandler = async (req, res) => {
     }
 }
 
+const logoutHandler =  async (req,res) =>{
+    try {
+        const data =  await logout(req.user.id)
+        res.send({status: 200, message: 'logged out successfully', data})
+    } catch (error) {
+        res.send({ status: 400, message: error.message })
+    }
+}
+
 module.exports = {
     addUserHandler,
     updateUserHandler,
@@ -84,5 +94,6 @@ module.exports = {
     getUserHandler,
     getUsersHandler,
     getMyProfile,
-    updateImageHandler
+    updateImageHandler,
+    logoutHandler
 }

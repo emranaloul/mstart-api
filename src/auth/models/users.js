@@ -1,8 +1,13 @@
 const client = require("../../db");
 const bcrypt = require('bcrypt');
+const { validateEmail, validateMobileNumber } = require("./helpers");
+
+
 
 const addUser = async ({ name, email, phone, gender, dateOfBirth, password, file , role }) => {
     try {
+        validateEmail(email)
+        validateMobileNumber(phone)
         let hashedPassword = await bcrypt.hash(password.trim(), 10)
         const sql = `INSERT INTO users (name, email, phone, gender, date_Of_Birth, DateTime_UTC, password,image,role ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) returning *;`
         const values = [name.toLowerCase().trim(), email.toLowerCase().trim(), phone.trim(), gender, dateOfBirth, new Date(new Date().toUTCString()), hashedPassword, file,role ?? 'user'];
@@ -14,6 +19,8 @@ const addUser = async ({ name, email, phone, gender, dateOfBirth, password, file
 }
 const updateUser = async ({ name, email, phone, gender, dateOfBirth, date_of_birth, id, status }) => {
     try {
+        validateEmail(email)
+        validateMobileNumber(phone)
         const sql = `update users set name=$1, email=$2, phone=$3, gender=$4, date_Of_Birth=$5, Update_DateTime_UTC=$6, status=$8 where id = $7 returning *;`
         const values = [name, email, phone, gender, dateOfBirth??date_of_birth, new Date(new Date().toUTCString()), id,status];
         let { rows } = await client.query(sql, values)
@@ -84,6 +91,28 @@ const updateImage = async ({image, id}) =>{
         throw new Error(error)
     }
 }
+
+const logout = async (id) =>{
+    try {
+        const sql =  `delete from jwt where user_id=$1 returning *`
+        const values = [id]
+        const {rows}=await client.query(sql,values )
+        return rows[0]
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
+const updateLastLogin = async  id =>{
+    try {
+        const sql =  `update users set Last_Login_DateTime_UTC=$2 where id =$1 returning *`
+        const values = [id, new Date(new Date().toUTCString())]
+        const {rows} = await client.query(sql, values)
+        return rows[0]
+    } catch (error) {
+        throw new Error(error)
+    }
+}
 module.exports = {
     addUser,
     updateUser,
@@ -91,6 +120,8 @@ module.exports = {
     getUsers,
     getUser,
     getUserByEmailOrName,
-    updateImage
+    updateImage,
+    logout,
+    updateLastLogin
 
 }

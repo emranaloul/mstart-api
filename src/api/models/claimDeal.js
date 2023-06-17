@@ -1,5 +1,5 @@
 const client = require("../../db");
-const { updateClaimedDeal } = require("./deals");
+const {  updateDealStatus } = require("./deals");
 
 
 const createClaim = async ({user_id, deal_id, amount, currency}) =>{
@@ -7,7 +7,7 @@ const createClaim = async ({user_id, deal_id, amount, currency}) =>{
         let sql = `insert into claimed_deals (user_id,deal_id,amount,currency, DateTime_UTC) values ($1,$2,$3,$4,$5) returning *`
         const safeValues = [user_id, deal_id, amount, currency,new Date(new Date().toUTCString())]
         const {rows} = await client.query(sql,safeValues)
-        await updateClaimedDeal(rows[0].deal_id)
+        await updateDealStatus(rows[0].deal_id, 'claimed')
         return rows[0]
     } catch (error) {
         throw new Error(error.message)
@@ -38,13 +38,14 @@ const getClaim = async  id => {
 }
 
 
-const getClaims =  async ({limit, offset}) =>{
+const getClaims =  async ({limit, offset, user_id}) => {
     try {
-        const sql =  `select cd.*,d.name as deal_name, u.name as username from claimed_deals cd inner join deals d on d.id=cd.deal_id inner join users u on u.id = cd.user_id limit $1 offset $2`
-        const _sql = `select count(*) from claimed_deals` 
+        const sql =  `select cd.*,d.name as deal_name, u.name as username from claimed_deals cd inner join deals d on d.id=cd.deal_id inner join users u on u.id = cd.user_id ${user_id ? 'where cd.user_id=$3': ''} limit $1 offset $2`
+        const _sql = `select count(*) from claimed_deals  ${user_id ? 'where user_id = $1': ''}` 
         const safeValues = [limit??10, offset??0]
+        user_id && safeValues.push(user_id)
         const {rows} = await client.query(sql, safeValues)
-        const {rows:_rows} = await client.query(_sql)
+        const {rows:_rows} = await client.query(_sql, safeValues.slice(2))
         return {data:rows, count: Number(_rows[0].count)??0}
     } catch (error) {
         throw new Error(error.message)
