@@ -1,11 +1,10 @@
+const usersRoutes = require('./controllers/usersConrtoller');
+const { httpMethods } = require('../utilities/constants');
 const express = require('express');
 
 const router = express.Router();
-const productsRoutes = require('./controllers/ProductController');
-const orderRoutes = require('./controllers/OrderController');
-const { httpMethods } = require('../utilities/constants');
 
-[productsRoutes, orderRoutes].flat().forEach((route) => {
+usersRoutes.forEach((route) => {
   const { handler, method, path, middlewares } = route;
   switch (method) {
     case httpMethods.GET:
@@ -29,4 +28,5 @@ const { httpMethods } = require('../utilities/constants');
       break;
   }
 });
+
 module.exports = router;

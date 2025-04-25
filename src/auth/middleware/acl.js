@@ -1,22 +1,14 @@
-const checkAdmin =  (req,res, next) =>{
-    try {
-        if(req.user.role === 'admin') next()
-        else res.send({status: 403, message:'unauthorized'})
-    } catch (error) {
-        res.send({status: 400, message: error.message   })
-    }
-}
+const checkAdmin = (req, res, next) => {
+  if (req.user.role === 'admin') next();
+  else throw { statusCode: 403, message: 'unauthorized' };
+};
 
-const checkActive = (req,res,next) =>{
-    try {
-        if(req.user.status.toLowerCase() === 'active') next()
-        else res.send({status: 403, message:'your account is inactive'})
-    } catch (error) {
-        res.send({status: 400, message: error.message   })
-    }
-}
+const checkActive = (req, res, next) => {
+  if (req.user.status === 'active') next();
+  else throw { statusCode: 403, message: 'your account is inactive' };
+};
 
 module.exports = {
-    checkAdmin,
-    checkActive
-}
+  checkAdmin,
+  checkActive,
+};

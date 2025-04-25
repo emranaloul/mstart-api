@@ -1,48 +1,31 @@
 const express = require('express');
 const app = express();
 const multer = require('multer');
-const upload =  multer()
-const bearer = require('./auth/middleware/bearer')
-const basic = require('./auth/middleware/basic')
+// const upload = multer();
 const cors = require('cors');
-const {
-    addUserHandler,
-    updateUserHandler,
-    deleteUserHandler,
-    getUserHandler,
-    getUsersHandler,
-    getMyProfile,
-    updateImageHandler,
-    logoutHandler
-} = require('./auth/controllers/users');
-const { uploadS3 } = require('./uploader');
-const { checkAdmin, checkActive } = require('./auth/middleware/acl');
+// const { uploadS3 } = require('./uploader');
 const router = require('./api/router');
+const authRouter = require('./auth/routes');
+const handle404 = require('./errors/404');
+const serverError = require('./errors/500');
+
 app.use(cors());
-app.use(express.json()); 
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use('/auth', authRouter);
+app.use('/api', router);
+// app.post('/auth/signup', uploadS3.single('avatar'), addUserHandler);
 
-app.use('/api', router)
-app.post('/auth/signup', uploadS3.single('avatar'), addUserHandler)
-app.post('/auth/signin', basic, checkActive, (req, res) => {
-    res.send({message:'logged in successfully', user: req.user, token:req.tokens, status: 200})
-})
-app.put('/user', bearer, upload.none(), updateUserHandler)
-app.post('/avatar', bearer,uploadS3.single('avatar'), updateImageHandler)
-app.delete('/user/:id', bearer, upload.none(), deleteUserHandler)
-app.get('/user/:id', bearer, upload.none(), getUserHandler)
-app.get('/user', bearer, checkAdmin , getUsersHandler)
-app.get('/me', bearer, getMyProfile)
-app.post('/logout', bearer, logoutHandler)
-
+app.use(handle404);
+app.use(serverError);
 
 module.exports = {
-    server: app, 
-    start: (port) => {
-        const PORT = port ?? 3000
-        app.listen(PORT, () => {
-            console.log(`Server up on port ${port}`)
-        });
-    },
-}
+  server: app,
+  start: (port) => {
+    const PORT = port ?? 3000;
+    app.listen(PORT, () => {
+      console.log(`Server up on port ${port}`);
+    });
+  },
+};
