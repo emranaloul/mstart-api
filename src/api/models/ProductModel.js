@@ -62,7 +62,7 @@ const getProductsModel = async ({ pageNumber = 1, status }) => {
     },
   });
 
-  const totalProducts = await prisma.product.count();
+  const totalProducts = await prisma.product.count({ where: { status } });
 
   return { data: products, totalCount: totalProducts };
 };
