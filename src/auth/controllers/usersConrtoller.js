@@ -3,7 +3,7 @@ const { checkActive } = require('../middleware/acl');
 const basic = require('../middleware/basic');
 const bearer = require('../middleware/bearer');
 const { logout } = require('../models/jwt');
-const { createUserModel } = require('../models/usersModel');
+const { createUserModel, getUser } = require('../models/usersModel');
 
 const createUserController = async (req, res, next) => {
   try {
@@ -21,6 +21,16 @@ const signInHandler = (req, res) => {
     token: req.token,
     status: 200,
   });
+};
+
+const getUserHandler = async (req, res, next) => {
+  try {
+    const { id } = req.user;
+    const user = await getUser(id);
+    res.status(200).json({ data: user });
+  } catch (error) {
+    next(error);
+  }
 };
 
 const logoutHandler = async (req, res, next) => {
@@ -48,6 +58,12 @@ const routes = [
     middlewares: [bearer],
     method: httpMethods.POST,
     path: '/logout',
+  },
+  {
+    handler: getUserHandler,
+    middlewares: [bearer, checkActive],
+    method: httpMethods.GET,
+    path: '/my-profile',
   },
 ];
 
