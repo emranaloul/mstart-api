@@ -2,13 +2,16 @@ const { httpMethods } = require('../../utilities/constants');
 const { checkActive } = require('../middleware/acl');
 const basic = require('../middleware/basic');
 const bearer = require('../middleware/bearer');
-const { logout } = require('../models/jwt');
+const { logout, getTokenRecord, createToken } = require('../models/jwt');
 const { createUserModel, getUser } = require('../models/usersModel');
 
 const createUserController = async (req, res, next) => {
   try {
     const user = await createUserModel(req.body);
-    res.status(201).json({ data: user, message: 'User created successfully' });
+    const token = await createToken(user.id);
+    res
+      .status(201)
+      .json({ data: user, message: 'User created successfully', token });
   } catch (error) {
     next(error);
   }
