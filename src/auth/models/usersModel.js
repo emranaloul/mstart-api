@@ -1,5 +1,6 @@
 const prisma = require('../../prisma');
 const bcrypt = require('bcrypt');
+const { getSkipAndTakeByPage } = require('../../utilities/utils');
 const createUserModel = async ({
   password,
   name,
@@ -55,9 +56,33 @@ const updateLastLogin = async (id) => {
   });
 };
 
+const getUsers = async (pageNumber = 1, status) => {
+  const { take, skip } = getSkipAndTakeByPage(pageNumber);
+  const users = await prisma.user.findMany({
+    take,
+    skip,
+    include: {
+      password: false,
+    },
+    where: {
+      status,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+  const count = await prisma.user.count({
+    where: {
+      status,
+    },
+  });
+  return { data: users, totalCount: count };
+};
+
 module.exports = {
   createUserModel,
   getUserByEmailOrName,
   getUser,
   updateLastLogin,
+  getUsers,
 };

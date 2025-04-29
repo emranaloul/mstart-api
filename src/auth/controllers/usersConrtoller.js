@@ -2,8 +2,8 @@ const { httpMethods } = require('../../utilities/constants');
 const { checkActive } = require('../middleware/acl');
 const basic = require('../middleware/basic');
 const bearer = require('../middleware/bearer');
-const { logout, getTokenRecord, createToken } = require('../models/jwt');
-const { createUserModel, getUser } = require('../models/usersModel');
+const { logout, createToken } = require('../models/jwt');
+const { createUserModel, getUser, getUsers } = require('../models/usersModel');
 
 const createUserController = async (req, res, next) => {
   try {
@@ -48,6 +48,24 @@ const logoutHandler = async (req, res, next) => {
   }
 };
 
+const getUsersHandler = async (req, res, next) => {
+  try {
+    const { pageNumber, status } = req.body;
+    const response = await getUsers(pageNumber, status);
+    res.status(200).json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const createUserByAdmin = async (req, res, next) => {
+  try {
+    const user = await createUserModel(req.body);
+    res.status(201).json({ data: user, message: 'User created successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
 const routes = [
   { handler: createUserController, method: httpMethods.POST, path: '/sign-up' },
   {
@@ -67,6 +85,18 @@ const routes = [
     middlewares: [bearer, checkActive],
     method: httpMethods.GET,
     path: '/my-profile',
+  },
+  {
+    handler: getUsersHandler,
+    middlewares: [bearer, checkActive],
+    method: httpMethods.POST,
+    path: '/usersForAdmin',
+  },
+  {
+    handler: createUserByAdmin,
+    middlewares: [bearer, checkActive],
+    method: httpMethods.POST,
+    path: '/createUserByAdmin',
   },
 ];
 
